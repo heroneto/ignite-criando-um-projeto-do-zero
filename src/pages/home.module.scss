@@ -1,1 +1,43 @@
-// TODO
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.postList {  
+  width: 700px;
+
+
+}
+
+
+.postContent {
+  cursor: pointer;
+  margin-top: 48px;
+
+  strong {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--heading);
+  }
+
+  p {
+    margin-top: .5rem;
+  }
+
+  .postInfo {
+    display: flex;
+    margin-top: 1rem;
+    div + div {
+      margin-left: 1rem;
+    }
+
+    time, span {
+      margin-left: .5rem;
+    }    
+  }
+
+
+}
