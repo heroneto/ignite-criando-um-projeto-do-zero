@@ -14,14 +14,50 @@
 }
 
 
-.postContent {   
+.post {   
   width: 100%;  
   display: flex;
   justify-content: center;
   div {    
-    width: 700px;
+    width: 800px;
   }
+
+  .postTitle {
+    font-size: 2.5rem;
+  }
+
+  .postInfo {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    width: 100%;
+
+  }
+
 }
 
+.postContentHeading {
+  font-size: 2rem;
+  color: var(--heading);
+  margin-top: 2rem;  
+  font-weight: 600;
+}
 
+.postContentText {
+  margin-top: 2rem;
+  line-height: 2rem;
+  font-size: 1.125rem;
+  color: var(--gray-100);
 
+  p, ul {
+    margin: 1.5rem 0;
+  }
+
+  ul, ol {
+    padding-left: 1.5rem;
+
+    li {
+      margin: 0.5rem 0;
+    }
+  }  
+}

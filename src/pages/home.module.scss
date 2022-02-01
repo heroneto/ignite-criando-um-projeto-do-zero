@@ -5,13 +5,9 @@
   align-items: center;
 }
 
-
-.postList {  
+.postList {
   width: 700px;
-
-
 }
-
 
 .postContent {
   cursor: pointer;
@@ -24,7 +20,7 @@
   }
 
   p {
-    margin-top: .5rem;
+    margin-top: 0.5rem;
   }
 
   .postInfo {
@@ -34,10 +30,26 @@
       margin-left: 1rem;
     }
 
-    time, span {
-      margin-left: .5rem;
-    }    
+    time,
+    span {
+      margin-left: 0.5rem;
+    }
   }
+}
 
+.loadMore {
+  margin-top: 2.5rem;
 
+  span {
+    cursor: pointer;
+    font-weight: bolder;
+    font-size: 1rem;
+    color: var(--highlight);
+
+    transition: all 0.2s;
+
+    &:hover {
+      filter: brightness(90%);
+    }
+  }
 }

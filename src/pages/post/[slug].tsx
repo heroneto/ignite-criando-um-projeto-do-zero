@@ -7,6 +7,8 @@ import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import { RichText } from 'prismic-dom';
+import React from 'react';
 
 interface Post {
   first_publication_date: string | null;
@@ -20,7 +22,7 @@ interface Post {
       heading: string;
       body: {
         text: string;
-      }[];
+      };
     }[];
   };
 }
@@ -29,38 +31,59 @@ interface PostProps {
   post: Post;
 }
 
-export default function Post() {
+export default function Post({ post }: PostProps) {
+
+  console.log('post', post)
   return (
     <>
       <Head>
-        <title>Post | como-utilizar-hooks</title>
+        <title>{post?.data.title}</title>
       </Head>
 
       <main className={styles.container}>
         <div className={styles.banner}>
-          <img src='/Banner.jpg' alt='banner' />
+          <img src={post?.data.banner.url} alt='banner' />
         </div>
-        
-        <article className={styles.postContent}>
+
+        <article className={styles.post}>
           <div>
-            <strong >
-            Criando um app CRA do zero
+            <strong>
+              {post?.data.title}
             </strong>
             <div className={styles.postInfo}>
               <div>
                 <AiOutlineCalendar />
-                <time>15 Mar 2021</time>
+                <time>{post?.first_publication_date}</time>
               </div>
               <div>
                 <RiUser3Line />
-                <span>Joseph Oliveira</span>
+                <span>{post?.data.author}</span>
               </div>
+              <div>
                 <BiTimeFive />
                 <span>4 min</span>
+              </div>
               <div>
-                
+
               </div>
             </div>
+
+
+            {post?.data.content.map(content => {
+              return (
+                <React.Fragment key={content.heading}>
+                  <div className={styles.postContentHeading}>
+                    <span>{content.heading}</span>
+                  </div>
+                  <div
+                    className={styles.postContentText}
+                    dangerouslySetInnerHTML={{ __html: content.body.text }}
+                  />
+                </React.Fragment>
+              )
+            })}
+
+
             {/* HERE POST DATA */}
           </div>
         </article>
@@ -69,16 +92,48 @@ export default function Post() {
   )
 }
 
-// export const getStaticPaths = async () => {
-//   const prismic = getPrismicClient();
-//   const posts = await prismic.query(TODO);
+export const getStaticPaths = async () => {
+  return {
+    paths: [
+    ],
+    fallback: true
+  }
+};
 
-//   // TODO
-// };
+export const getStaticProps = async ({ params }) => {
+  const { slug } = params
+  const prismic = getPrismicClient();
+  const response = await prismic.getByUID('publication', String(slug), {});
 
-// export const getStaticProps = async context => {
-//   const prismic = getPrismicClient();
-//   const response = await prismic.getByUID(TODO);
 
-//   // TODO
-// };
+  const { first_publication_date, data } = response
+
+  const post = {
+    first_publication_date: new Date(first_publication_date).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }),
+    data: {
+      title: data.title,
+      banner: {
+        url: data.banner.url
+      },
+      author: data.author,
+      content: data.content.map(content => {
+        return {
+          heading: content.heading,
+          body: {
+            text: RichText.asHtml(content.body)
+          }
+        }
+      })
+    }
+  }
+
+  return {
+    props: {
+      post: post
+    }
+  }
+};
