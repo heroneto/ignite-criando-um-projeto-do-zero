@@ -113,7 +113,6 @@ export const getStaticProps = async () => {
       }
     }
   })
-  console.log('postsResponse', postsResponse)
 
   return {
     props: {

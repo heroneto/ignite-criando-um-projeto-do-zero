@@ -7,9 +7,12 @@ import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import { RichText } from 'prismic-dom';
-import React from 'react';
+import Prismic from '@prismicio/client'
 
+import React from 'react';
+import { format } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR'
+import { useRouter } from 'next/router';
 interface Post {
   first_publication_date: string | null;
   data: {
@@ -22,7 +25,7 @@ interface Post {
       heading: string;
       body: {
         text: string;
-      };
+      }[];
     }[];
   };
 }
@@ -32,70 +35,100 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
+  const router = useRouter()
 
-  console.log('post', post)
+  if(router.isFallback){
+    return <div>Carregando...</div>
+  }
+
   return (
     <>
       <Head>
         <title>{post?.data.title}</title>
       </Head>
 
+
       <main className={styles.container}>
-        <div className={styles.banner}>
-          <img src={post?.data.banner.url} alt='banner' />
-        </div>
-
-        <article className={styles.post}>
-          <div>
-            <strong>
-              {post?.data.title}
-            </strong>
-            <div className={styles.postInfo}>
-              <div>
-                <AiOutlineCalendar />
-                <time>{post?.first_publication_date}</time>
-              </div>
-              <div>
-                <RiUser3Line />
-                <span>{post?.data.author}</span>
-              </div>
-              <div>
-                <BiTimeFive />
-                <span>4 min</span>
-              </div>
-              <div>
-
-              </div>
+        {post && (
+          <>
+            <div className={styles.banner}>
+              <img src={post.data.banner.url} alt='banner' />
             </div>
 
-
-            {post?.data.content.map(content => {
-              return (
-                <React.Fragment key={content.heading}>
-                  <div className={styles.postContentHeading}>
-                    <span>{content.heading}</span>
+            <article className={styles.post}>
+              <div>
+                <strong className={styles.postTitle}>
+                  {post.data.title}
+                </strong>
+                <div className={styles.postInfo}>
+                  <div>
+                    <AiOutlineCalendar />
+                    <time>  {post.first_publication_date && format(new Date(post.first_publication_date), 'dd MMM yyyy').toLocaleLowerCase()}</time>
                   </div>
-                  <div
-                    className={styles.postContentText}
-                    dangerouslySetInnerHTML={{ __html: content.body.text }}
-                  />
-                </React.Fragment>
-              )
-            })}
+                  <div>
+                    <RiUser3Line />
+                    <span>{post.data.author}</span>
+                  </div>
+                  <div>
+                    <BiTimeFive />
+                    <span>4 min</span>
+                  </div>
+                  <div>
+
+                  </div>
+                </div>
 
 
-            {/* HERE POST DATA */}
-          </div>
-        </article>
+                {post.data.content.map(content => {
+                  return (
+                    <React.Fragment key={content.heading}>
+                      <div className={styles.postContentHeading}>
+                        <span>{content.heading}</span>
+                      </div>
+                      {content.body.map(body => (
+                        <div
+                          key={body.text}
+                          className={styles.postContentText}
+                          dangerouslySetInnerHTML={{ __html: body.text }}
+                        />
+                      ))}
+
+
+
+                    </React.Fragment>
+                  )
+                })}
+              </div>
+            </article>
+          </>
+        )}
+
       </main>
     </>
   )
 }
 
 export const getStaticPaths = async () => {
+  const prismic = getPrismicClient()
+  const response = await prismic.query([
+    Prismic.predicates.at('document.type', 'publication')
+  ], {
+    fetch: ['publication.uid'],
+    pageSize: 100
+  })
+
+  const staticPaths = response.results.map(res => {
+    return {
+      params: {
+        slug: res.uid
+      }
+    }
+  })
+
+  
+
   return {
-    paths: [
-    ],
+    paths: staticPaths,
     fallback: true
   }
 };
@@ -108,14 +141,13 @@ export const getStaticProps = async ({ params }) => {
 
   const { first_publication_date, data } = response
 
+
   const post = {
-    first_publication_date: new Date(first_publication_date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }),
+    uid: response.uid,
+    first_publication_date: first_publication_date,
     data: {
       title: data.title,
+      subtitle: data.subtitle,
       banner: {
         url: data.banner.url
       },
@@ -123,14 +155,11 @@ export const getStaticProps = async ({ params }) => {
       content: data.content.map(content => {
         return {
           heading: content.heading,
-          body: {
-            text: RichText.asHtml(content.body)
-          }
+          body: content.body
         }
       })
     }
   }
-
   return {
     props: {
       post: post
